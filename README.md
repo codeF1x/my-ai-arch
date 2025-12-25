@@ -74,7 +74,11 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-## 📂 Project Structure
+## � Documentation
+
+- [Project Documentation (Lesson 1: Theoretical Core Guide)](https://codef1x.github.io/post/tech/my-ai-project/lesson-1-theoretical-core-guide/)
+
+## �📂 Project Structure
 
 - `/app`: Next.js App Router pages and API routes.
   - `/api/analyze`: AI analysis endpoint.
