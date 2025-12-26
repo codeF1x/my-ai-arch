@@ -3,7 +3,7 @@
 A modern, AI-native full-stack application template built with the Vercel standard technology stack. Optimized for speed, type safety, and structured AI outputs.
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FcodeF1x%2Fmy-ai-arch&env=DEEPSEEK_API_KEY,DEEPSEEK_BASE_URL,DATABASE_URL,UPSTASH_REDIS_REST_URL,UPSTASH_REDIS_REST_TOKEN)
-[![Live Demo](https://img.shields.io/badge/demo-live-brightgreen)](https://your-demo-url.vercel.app)
+[![Live Demo](https://img.shields.io/badge/demo-live-brightgreen)](https://my-ai-arch.vercel.app/)
 
 English | [中文](./README_CN.md)
 
