@@ -4,7 +4,7 @@ This document outlines the planned features and improvements for **My AI Archite
 
 ## 🚀 Short-Term Goals (High Priority)
 
-### 1. Rate Limiting
+### 1. Rate Limiting (Completed ✅)
 
 - **Goal**: Protect the `/api/analyze` endpoint from abuse.
 - **Tech**: [Upstash Redis](https://upstash.com/) or [Vercel KV](https://vercel.com/docs/storage/vercel-kv).

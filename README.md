@@ -2,7 +2,7 @@
 
 A modern, AI-native full-stack application template built with the Vercel standard technology stack. Optimized for speed, type safety, and structured AI outputs.
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FcodeF1x%2Fmy-ai-arch&env=DEEPSEEK_API_KEY,DEEPSEEK_BASE_URL,DATABASE_URL)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FcodeF1x%2Fmy-ai-arch&env=DEEPSEEK_API_KEY,DEEPSEEK_BASE_URL,DATABASE_URL,UPSTASH_REDIS_REST_URL,UPSTASH_REDIS_REST_TOKEN)
 [![Live Demo](https://img.shields.io/badge/demo-live-brightgreen)](https://your-demo-url.vercel.app)
 
 English | [中文](./README_CN.md)
@@ -97,7 +97,7 @@ npm run dev
 
 ## 🗺️ Roadmap
 
-- [ ] **Rate Limiting**: Implement Upstash/Vercel KV for API protection.
+- [x] **Rate Limiting**: Implement Upstash/Vercel KV for API protection.
 - [ ] **Prompt Versioning**: Compare output stability across different prompt versions.
 - [ ] **RAG Demo**: Add semantic search using `pgvector` and document embeddings.
 - [ ] **Evaluation**: Add a structured evaluation suite for AI response quality.

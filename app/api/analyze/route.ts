@@ -18,17 +18,37 @@ import { deepseek } from "@ai-sdk/deepseek";
 import { streamObject} from "ai";
 import { desc } from "drizzle-orm";
 import { analysisSchema } from "@/lib/shared/analysis-schema";
-import {  getAnalyzeMessages } from "@/lib/ai/prompts";
+import { getAnalyzeMessages } from "@/lib/ai/prompts";
+import { ratelimit } from "@/lib/ratelimit";
+import { headers } from "next/headers";
 
 
 
 
 // export const runtime = 'edge'; // 暂时注释掉 Edge Runtime，因为 postgres.js 在 Edge 环境下可能存在兼容性问题，改用默认的 Node.js Runtime 
 
-export async function POST(req:Request) {
+export async function POST(req: Request) {
 
-    //在这里解析请求体
-    const {text} = await req.json();
+  // 0. 流量限制 (Rate Limiting)
+  const ip = (await headers()).get("x-forwarded-for") ?? "127.0.0.1";
+  const { success, limit, reset, remaining } = await ratelimit.limit(
+    `ratelimit_analyze_${ip}`
+  );
+
+  if (!success) {
+    return new Response(JSON.stringify({ error: "请求过于频繁，请稍后再试" }), {
+      status: 429,
+      headers: {
+        "Content-Type": "application/json",
+        "X-RateLimit-Limit": limit.toString(),
+        "X-RateLimit-Remaining": remaining.toString(),
+        "X-RateLimit-Reset": reset.toString(),
+      },
+    });
+  }
+
+  // 在这里解析请求体
+  const { text } = await req.json();
     
 
     //1.3 替换成 streamObject 
