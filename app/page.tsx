@@ -1,118 +1,76 @@
 
 'use client';
-import { useState ,useEffect} from "react";
-const sentimentConfig = {
-  positive: { color: 'bg-green-100 border-green-500 text-green-700', icon: '✅', label: '积极' },
-  negative: { color: 'bg-red-100 border-red-500 text-red-700', icon: '🚨', label: '消极' },
-  neutral:  { color: 'bg-blue-100 border-blue-500 text-blue-700', icon: 'ℹ️', label: '中性' },
-};
+
+//引入 shadcn ui 组件
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import { analysisSchema } from "@/lib/shared/analysis-schema";
+import { experimental_useObject as useObject } from "@ai-sdk/react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { ChevronDown } from "lucide-react";
+import { useState } from "react";
+
 
 export default function AnalysisPage() {
-  const [text,setText] = useState('');
-  const [analysis,setAnalysis] = useState<any>(null);
-  const [loading,setLoading] = useState(false);
-// 2. 增加历史记录状态
-  const [history, setHistory] = useState<any[]>([]);
+  const [text, setText] = useState('');
+  // 1. 使用 useObject Hook
+  // 它会自动处理与后端 API (/api/analyze) 的流式连接
+  const { object: partialObject, submit, isLoading } = useObject({
+    api: '/api/analyze',
+    schema: analysisSchema, // 与后端共用同一个 Schema，确保类型安全
+  });
 
-  // 3. 封装一个获取历史记录的函数
-  const fetchHistory = async () => {
-    const res = await fetch('/api/analyze');
-    const data = await res.json();
-    setHistory(data);
+  const handleAnalyze = () => {
+  if (!text.trim()) return; // 防护：如果没写字，不发送请求
+    
+    // 3. submit 会把这个对象转为 JSON 发送给后端的 req.json()
+    submit({ text });
   };
 
-  // 4. 页面首次加载时自动获取历史
-  useEffect(() => {
-    fetchHistory();
-  }, []);
+  return (
+    <div className="max-w-3xl mx-auto py-10 px-4 space-y-8">
+    <Textarea 
+        placeholder="请输入故障描述..." 
+        value={text} 
+        onChange={(e) => setText(e.target.value)} 
+        className="text-black"
+      />
+      <Button onClick={handleAnalyze} disabled={isLoading}>
+        {isLoading ? "专家正在思考..." : "开始流式诊断"}
+      </Button>
 
-  const handleAnalyze = async () => {
-   setLoading(true);
-    const res = await fetch('/api/analyze', {
-      method: 'POST',
-      body: JSON.stringify({ text }),
-    });
-    const data = await res.json();
-    setAnalysis(data); // 存储后端返回的整个对象（包含 id 和 result）
-    setLoading(false);
-    // 5. 分析成功后，刷新历史列表
-      fetchHistory();
-  };
-
-// 根据后端返回的情感，提取 UI 配置
-  const config = analysis ? sentimentConfig[analysis.result.sentiment as keyof typeof sentimentConfig] : null;
-  
-return (
-    <main className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-2xl mx-auto space-y-6">
-        <h1 className="text-2xl font-bold text-gray-900">智能故障分析器</h1>
-        
-        <textarea 
-          className="w-full p-4 h-32 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
-          placeholder="请输入设备故障描述，例如：屏幕有横纹，太糟糕了..."
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-        />
-
-        <button 
-          onClick={handleAnalyze}
-          disabled={loading || !text}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-xl transition-all disabled:bg-gray-400"
-        >
-          {loading ? '专家正在诊断中...' : '提交专家分析'}
-        </button>
-
-        {/* ✅ 5. 动态渲染“变色龙”卡片 */}
-        
-        {analysis && config && (
-          <div className={`p-6 border-l-8 rounded-xl shadow-md transition-all animate-in fade-in slide-in-from-bottom-4 ${config.color}`}>
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <span className="text-2xl">{config.icon}</span>
-                <h2 className="font-bold text-lg">{config.label} (任务 #{analysis.id})</h2>
-              </div>
-              <span className="text-xs font-semibold px-2 py-1 bg-white/50 rounded-full">
-                置信度: {(analysis.result.score * 100).toFixed(0)}%
-              </span>
-            </div>
-            <p className="leading-relaxed text-sm lg:text-base">
-              {analysis.result.summary}
+      {/* 2. 流式展示：利用 partialObject 的存在性 */}
+      {(isLoading || partialObject) && (
+        <Card className="border-t-4 border-t-primary shadow-lg">
+          <CardHeader>
+             <CardTitle>诊断中...</CardTitle>
+             <CardDescription>
+               {/* 实时显示置信度，即便它还没完全算出来 */}
+               置信度: {partialObject?.score ? (partialObject.score * 100).toFixed(0) : '--'}%
+             </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {/* ✨ 魔法时刻：summary 会随着流的传输逐字跳出 */}
+            <p className="text-lg font-medium min-h-[1.5em]">
+              {partialObject?.summary}
+              {isLoading && !partialObject?.summary && <span className="animate-pulse">|</span>}
             </p>
-          </div>
-        )}
-        {/* 6. 历史记录列表部分 */}
-        <div className="pt-10 border-t border-gray-200">
-          <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
-            📜 历史分析存证
-          </h2>
-          
-          <div className="space-y-4">
-            {history.map((item) => {
-              // 同样复用之前的颜色配置
-              const itemConfig = sentimentConfig[item.result.sentiment as keyof typeof sentimentConfig];
-              
-              return (
-                <div key={item.id} className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm flex items-start gap-4">
-                  <span className="text-2xl">{itemConfig?.icon}</span>
-                  <div className="flex-1">
-                    <div className="flex justify-between items-start">
-                      <p className="font-medium text-gray-800 line-clamp-1">{item.content}</p>
-                      <span className="text-xs text-gray-400">
-                        #{item.id} · {new Date(item.createdAt).toLocaleDateString()}
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-500 mt-1">{item.result.summary}</p>
-                  </div>
-                </div>
-              );
-            })}
-            
-            {history.length === 0 && (
-              <p className="text-center text-gray-400 py-10">暂无历史记录，开始你的第一次分析吧！</p>
-            )}
-          </div>
-        </div>
-      </div>
-    </main>
+          </CardContent>
+          <CardFooter>
+            <Collapsible className="w-full">
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" size="sm" className="flex items-center gap-2 p-0 h-auto font-normal text-muted-foreground">
+                  查看思维链 (CoT) 推理过程 <ChevronDown className="h-4 w-4" />
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="pt-4 text-sm text-muted-foreground leading-relaxed italic">
+                {partialObject?.reasoning || "正在生成推理过程..."}
+              </CollapsibleContent>
+            </Collapsible>
+          </CardFooter>
+        </Card>
+      )}
+    </div>
   );
 }
