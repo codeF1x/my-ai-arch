@@ -18,6 +18,8 @@ import { deepseek } from "@ai-sdk/deepseek";
 import { streamObject} from "ai";
 import { desc } from "drizzle-orm";
 import { analysisSchema } from "@/lib/shared/analysis-schema";
+import {  getAnalyzeMessages } from "@/lib/ai/prompts";
+
 
 
 
@@ -34,10 +36,7 @@ export async function POST(req:Request) {
         model:deepseek('deepseek-chat'),
         schema: analysisSchema,
         output:'object',
-        messages:[
-          { role: 'system', content: '你是一位资深硬件维修专家。请分析用户情感并给出 0-1 的置信度。' },
-          { role: 'user', content: text },
-        ],
+        messages:getAnalyzeMessages(text), //根据用户输入的是中/英 切换few-shot
         onFinish:async ({object})=>{
           if(object){
             await db.insert(analysisTasks).values({
@@ -50,7 +49,6 @@ export async function POST(req:Request) {
 
       //将流转换成标准的 HTTP 响应返回给前端
       return result.toTextStreamResponse()
-
     
  }
 
