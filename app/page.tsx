@@ -8,12 +8,28 @@ import { Textarea } from "@/components/ui/textarea";
 import { analysisSchema } from "@/lib/shared/analysis-schema";
 import { experimental_useObject as useObject } from "@ai-sdk/react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Copy, Check, Sparkles } from "lucide-react";
 import { useState } from "react";
+
 
 
 export default function AnalysisPage() {
   const [text, setText] = useState('');
+  const [copied, setCopied] = useState(false);
+
+  const examples = [
+    { label: "中性描述", text: "显示器型号 U2723QE，屏幕有横纹" },
+    { label: "严重故障", text: "屏幕冒烟了！太吓人了，刚买不到一个月！" },
+    { label: "正面反馈", text: "感谢专家的建议，换了线之后显示器恢复正常了，非常满意！" },
+  ];
+
+  const copyToClipboard = () => {
+    if (!partialObject) return;
+    navigator.clipboard.writeText(JSON.stringify(partialObject, null, 2));
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   // 1. 使用 useObject Hook
   // 它会自动处理与后端 API (/api/analyze) 的流式连接
   const { object: partialObject, submit, isLoading } = useObject({
@@ -30,26 +46,57 @@ export default function AnalysisPage() {
 
   return (
     <div className="max-w-3xl mx-auto py-10 px-4 space-y-8">
-    <Textarea 
-        placeholder="请输入故障描述..." 
-        value={text} 
-        onChange={(e) => setText(e.target.value)} 
-        className="text-black"
-      />
-      <Button onClick={handleAnalyze} disabled={isLoading}>
-        {isLoading ? "专家正在思考..." : "开始流式诊断"}
-      </Button>
+      <div className="space-y-4">
+        <div className="flex flex-wrap gap-2">
+          {examples.map((ex, i) => (
+            <Button 
+              key={i} 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setText(ex.text)}
+              className="text-xs"
+            >
+              {ex.label}
+            </Button>
+          ))}
+        </div>
+        <Textarea 
+          placeholder="请输入故障描述..." 
+          value={text} 
+          onChange={(e) => setText(e.target.value)} 
+          className="text-black min-h-[120px]"
+        />
+        <Button onClick={handleAnalyze} disabled={isLoading} className="w-full">
+          {isLoading ? (
+            <span className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4 animate-spin" /> 专家正在思考...
+            </span>
+          ) : "开始流式诊断"}
+        </Button>
+      </div>
+
 
       {/* 2. 流式展示：利用 partialObject 的存在性 */}
       {(isLoading || partialObject) && (
         <Card className="border-t-4 border-t-primary shadow-lg">
-          <CardHeader>
-             <CardTitle>诊断中...</CardTitle>
-             <CardDescription>
-               {/* 实时显示置信度，即便它还没完全算出来 */}
-               置信度: {partialObject?.score ? (partialObject.score * 100).toFixed(0) : '--'}%
-             </CardDescription>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div className="space-y-1">
+              <CardTitle>诊断结果</CardTitle>
+              <CardDescription>
+                置信度: {partialObject?.score ? (partialObject.score * 100).toFixed(0) : '--'}%
+              </CardDescription>
+            </div>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={copyToClipboard}
+              disabled={!partialObject}
+              title="复制 JSON 结果"
+            >
+              {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+            </Button>
           </CardHeader>
+
           <CardContent>
             {/* ✨ 魔法时刻：summary 会随着流的传输逐字跳出 */}
             <p className="text-lg font-medium min-h-[1.5em]">
