@@ -11,7 +11,9 @@
   "dependencies": {
     "@ai-sdk/deepseek": "^2.0.1",
     "@ai-sdk/react": "^3.0.3",
+    "@huggingface/transformers": "^3.8.1",
     "@radix-ui/react-collapsible": "^1.1.12",
+    "@radix-ui/react-progress": "^1.1.8",
     "@radix-ui/react-slot": "^1.2.4",
     "@upstash/ratelimit": "^2.0.7",
     "@upstash/redis": "^1.36.0",
