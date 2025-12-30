@@ -53,3 +53,7 @@ Thumbs.db
 *.swp
 *.swo
 
+# docs
+/docs/roadmap.md
+
+
