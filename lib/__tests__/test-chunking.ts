@@ -1,4 +1,4 @@
-import { chunkText, estimateTokenCount } from "../lib/chunking";
+import { chunkText, estimateTokenCount } from "../chunking";
 
 // 简单测试
 const text = `

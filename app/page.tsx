@@ -1,7 +1,5 @@
-
 'use client';
 
-//引入 shadcn ui 组件
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,8 +10,7 @@ import { ChevronDown, Copy, Check, Sparkles, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { useEmbedding } from "@/hooks/use-embedding";
 import { Progress } from "@/components/ui/progress";
-
-
+import { FileUploader } from "@/components/file-uploader";
 
 export default function AnalysisPage() {
   const [text, setText] = useState('');
@@ -37,16 +34,13 @@ export default function AnalysisPage() {
   };
 
   // 1. 使用 useObject Hook
-  // 它会自动处理与后端 API (/api/analyze) 的流式连接
   const { object: partialObject, submit, isLoading } = useObject({
     api: '/api/analyze',
-    schema: analysisSchema, // 与后端共用同一个 Schema，确保类型安全
+    schema: analysisSchema,
   });
 
   const handleAnalyze = () => {
-  if (!text.trim()) return; // 防护：如果没写字，不发送请求
-    
-    // 3. submit 会把这个对象转为 JSON 发送给后端的 req.json()
+    if (!text.trim()) return;
     submit({ text });
   };
 
@@ -65,6 +59,21 @@ export default function AnalysisPage() {
 
   return (
     <div className="max-w-3xl mx-auto py-10 px-4 space-y-8">
+      {/* 新增：文档上传区域 */}
+      <div className="space-y-4">
+        <h2 className="text-lg font-semibold">文档处理 (RAG)</h2>
+        <FileUploader />
+      </div>
+
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <span className="w-full border-t" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-background px-2 text-muted-foreground">或者直接输入</span>
+        </div>
+      </div>
+
       <div className="space-y-4">
         <div className="flex flex-wrap gap-2">
           {examples.map((ex, i) => (
@@ -138,8 +147,6 @@ export default function AnalysisPage() {
         )}
       </div>
 
-
-      {/* 2. 流式展示：利用 partialObject 的存在性 */}
       {(isLoading || partialObject) && (
         <Card className="border-t-4 border-t-primary shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between">
@@ -161,7 +168,6 @@ export default function AnalysisPage() {
           </CardHeader>
 
           <CardContent>
-            {/* ✨ 魔法时刻：summary 会随着流的传输逐字跳出 */}
             <p className="text-lg font-medium min-h-[1.5em]">
               {partialObject?.summary}
               {isLoading && !partialObject?.summary && <span className="animate-pulse">|</span>}
